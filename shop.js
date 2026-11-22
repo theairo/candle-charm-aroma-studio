@@ -6,9 +6,11 @@ export const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;"
 export const money = n => `${n} ₴`;
 
 const KEY = "candle-cart-v1";
+export const MAX_QTY = 20;                         // the order function rejects more than this per product
 let cart = [];                                   // [{id, name, price, img, qty}]
 try { cart = JSON.parse(localStorage.getItem(KEY)) || []; } catch {}
 if (!Array.isArray(cart)) cart = [];
+cart.forEach(i => { i.qty = Math.min(Math.max(Math.floor(i.qty) || 1, 1), 20); });   // repair old oversized carts
 
 const commit = () => {
   try { localStorage.setItem(KEY, JSON.stringify(cart)); } catch {}
@@ -22,14 +24,14 @@ export const clearCart = () => { cart = []; commit(); };
 
 export function addToCart(p) {
   const found = cart.find(i => i.id === p.id);
-  if (found) found.qty++; else cart.push({ id: p.id, name: p.name, price: Number(p.price), img: p.image_url, qty: 1 });
+  if (found) found.qty = Math.min(found.qty + 1, MAX_QTY); else cart.push({ id: p.id, name: p.name, price: Number(p.price), img: p.image_url, qty: 1 });
   commit();
 }
 
 export function changeQty(id, delta) {              // delta = +1 / -1; "rm" removes
   const it = cart.find(i => String(i.id) === String(id)); if (!it) return;
   if (delta === "rm") cart = cart.filter(i => i !== it);
-  else { it.qty += delta; if (it.qty <= 0) cart = cart.filter(i => i !== it); }
+  else { it.qty = Math.min(it.qty + delta, MAX_QTY); if (it.qty <= 0) cart = cart.filter(i => i !== it); }
   commit();
 }
 
