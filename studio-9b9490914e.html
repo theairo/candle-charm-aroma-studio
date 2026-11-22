@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Candle & Charm — студія</title>
+<title>Candle & Charm | студія</title>
 <link rel="icon" href="img/mark.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -108,7 +108,7 @@
       </div>
       <label class="check"><input type="checkbox" id="f_active" checked> Показувати на сайті</label>
 
-      <label>Фото (перше — головне)</label>
+      <label>Фото (перше головне)</label>
       <div class="photos" id="photos"></div>
       <div style="margin-top:10px"><input id="f_file" type="file" accept="image/*" multiple></div>
 
@@ -164,7 +164,7 @@
       <tr class="${c.is_active ? "" : "off"}">
         <td><img src="${esc(c.image_url)}" alt=""></td>
         <td><b>${esc(c.name)}</b>${c.is_active ? "" : ' <span class="tag">прихований</span>'}</td>
-        <td class="hide-s">${esc(c.category || "—")}</td>
+        <td class="hide-s">${esc(c.category || "-")}</td>
         <td>${Number(c.price)} ₴</td>
         <td><div class="act">
           <button class="btn ghost sm" data-a="toggle" data-id="${c.id}">${c.is_active ? "Сховати" : "Показати"}</button>

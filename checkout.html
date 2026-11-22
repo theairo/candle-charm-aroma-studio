@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Оформлення замовлення | Candle & Charm</title>
+<link rel="icon" href="img/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script src="layout.js"></script>
+<script src="config.js"></script>
+
+<main class="wrap">
+  <div class="page-title"><h1>Оформлення замовлення</h1></div>
+
+  <div class="empty hidden" id="empty">
+    <h2>Кошик порожній</h2>
+    <p>Додайте свічки з каталогу, і вони з'являться тут.</p>
+    <a href="shop.html" class="btn">До каталогу</a>
+  </div>
+
+  <div class="checkout hidden" id="checkout">
+    <form id="form" novalidate>
+      <div class="panel">
+        <h2>Ваші контакти</h2>
+        <p class="lead">Ми напишемо вам у Viber, щоб підтвердити замовлення.</p>
+        <div class="field">
+          <label for="o_name">Ім'я</label>
+          <input id="o_name" autocomplete="name" maxlength="100" required>
+          <label for="o_phone">Телефон (Viber)</label>
+          <input id="o_phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+380 __ ___ __ __" maxlength="20" required>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Доставка</h2>
+        <p class="lead">Оберіть перевізника і вкажіть відділення.</p>
+        <div class="carrier-pick" role="radiogroup" aria-label="Перевізник">
+          <label><input type="radio" name="carrier" value="nova" checked><span><img class="ico" src="img/nova.png" alt=""><em><b>Нова пошта</b><small>Відділення або поштомат</small></em></span></label>
+          <label><input type="radio" name="carrier" value="ukr"><span><img class="ico" src="img/ukr.png" alt=""><em><b>Укрпошта</b><small>Відділення Укрпошти</small></em></span></label>
+        </div>
+        <div class="field">
+          <label for="o_city">Місто або населений пункт</label>
+          <input id="o_city" autocomplete="address-level2" maxlength="100" placeholder="Наприклад, Дніпро" required>
+          <label for="o_branch" id="branchLabel">Відділення або поштомат Нової пошти</label>
+          <input id="o_branch" maxlength="150" placeholder="Наприклад, Відділення №12" required>
+          <label for="o_comment">Коментар (необов'язково)</label>
+          <textarea id="o_comment" maxlength="500" rows="3"></textarea>
+          <input id="o_hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;opacity:0;height:0;width:0">
+        </div>
+        <div class="pay-note"><span>💳</span><span><b>Оплата при отриманні</b> на відділенні. Передоплата не потрібна.</span></div>
+      </div>
+    </form>
+
+    <aside class="panel summary">
+      <h2>Ваше замовлення</h2>
+      <div id="items" style="margin-top:14px"></div>
+      <div class="total"><span>Разом</span><b id="total">0 ₴</b></div>
+      <p class="total-sub">Доставка оплачується за тарифами перевізника. Платите при отриманні.</p>
+      <button class="btn block" id="send" type="button">Підтвердити замовлення</button>
+      <div class="note" id="note"></div>
+    </aside>
+  </div>
+</main>
+
+<div class="done hidden" id="done" role="dialog" aria-modal="true" aria-labelledby="doneTitle">
+  <img class="mark" src="img/mark.png" alt="">
+  <h2 id="doneTitle">Дякуємо за замовлення!</h2>
+  <p>Ми отримали його й найближчим часом напишемо вам у Viber, щоб підтвердити.</p>
+  <p class="small">Оплата при отриманні на відділенні.</p>
+  <a href="index.html" class="btn">На головну</a>
+</div>
+
+<script type="module">
+  import { $, esc, money, getCart, cartTotal, changeQty, clearCart, loadProducts } from "./shop.js";
+
+  const note = (t, err) => { $("note").textContent = t; $("note").classList.toggle("err", !!err); };
+  const carrier = () => document.querySelector('input[name="carrier"]:checked').value;
+
+  function render() {
+    const cart = getCart();
+    $("empty").classList.toggle("hidden", cart.length > 0);
+    $("checkout").classList.toggle("hidden", cart.length === 0);
+    $("total").textContent = money(cartTotal());
+    $("items").innerHTML = cart.map(i => `
+      <div class="it">
+        <div class="th"><img src="${esc(i.img)}" alt=""></div>
+        <div><b>${esc(i.name)}</b><small>${money(i.price)}</small>
+          <div class="qty"><button type="button" data-act="dec" data-id="${i.id}" aria-label="Менше">&minus;</button><span>${i.qty}</span><button type="button" data-act="inc" data-id="${i.id}" aria-label="Більше">+</button></div></div>
+        <div style="text-align:right"><div>${money(i.price * i.qty)}</div><button type="button" class="rm" data-act="rm" data-id="${i.id}">видалити</button></div>
+      </div>`).join("");
+  }
+
+  $("items").onclick = e => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    changeQty(b.dataset.id, b.dataset.act === "inc" ? 1 : b.dataset.act === "dec" ? -1 : "rm");
+    render();
+  };
+
+  document.querySelectorAll('input[name="carrier"]').forEach(r => r.onchange = () => {
+    $("branchLabel").textContent = carrier() === "nova" ? "Відділення або поштомат Нової пошти" : "Відділення Укрпошти (індекс або адреса)";
+    $("o_branch").placeholder = carrier() === "nova" ? "Наприклад, Відділення №12" : "Наприклад, 49000, вул. Робоча, 1";
+  });
+
+  const ERR = {
+    name: "Вкажіть ім'я", phone: "Перевірте номер телефону", city: "Вкажіть місто", branch: "Вкажіть відділення",
+    carrier: "Оберіть перевізника", rate: "Забагато спроб. Спробуйте трохи пізніше",
+    unavailable: "Деякі товари вже недоступні. Оновіть сторінку", items: "Кошик порожній або некоректний",
+  };
+
+  $("send").onclick = async () => {
+    const name = $("o_name").value.trim(), phone = $("o_phone").value.trim();
+    const city = $("o_city").value.trim(), branch = $("o_branch").value.trim();
+    const bad = {
+      o_name: name.length < 2, o_phone: phone.replace(/\D/g, "").length < 9,
+      o_city: city.length < 2, o_branch: branch.length < 1,
+    };
+    Object.entries(bad).forEach(([id, v]) => $(id).classList.toggle("bad", v));
+    const firstBad = Object.keys(bad).find(id => bad[id]);
+    if (firstBad) {
+      $(firstBad).focus();
+      return note({ o_name: ERR.name, o_phone: ERR.phone, o_city: ERR.city, o_branch: ERR.branch }[firstBad], true);
+    }
+
+    $("send").disabled = true; note("Надсилаємо…");
+    try {
+      const r = await fetch(`${window.SUPABASE_URL}/functions/v1/place-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: window.SUPABASE_KEY },
+        body: JSON.stringify({
+          name, phone, city, branch, carrier: carrier(),
+          comment: $("o_comment").value.trim(), website: $("o_hp").value,
+          items: getCart().map(i => ({ id: i.id, qty: i.qty })),
+        }),
+      });
+      const res = await r.json().catch(() => ({}));
+      if (!r.ok || !res.ok) throw new Error(res.error || "server");
+      clearCart();
+      $("done").classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+      return;
+    } catch (e) {
+      note(ERR[e.message] || "Не вдалося надіслати. Спробуйте ще раз або напишіть нам в Instagram", true);
+    }
+    $("send").disabled = false;
+  };
+
+  render();
+  await loadProducts();     // refresh prices / drop removed products, then redraw
+  render();
+</script>
+</body>
+</html>
