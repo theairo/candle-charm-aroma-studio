@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         <p style="margin:4px 0"><b>Телефон:</b> <a href="tel:${esc(phone)}">${esc(phone)}</a>
            · <a href="viber://chat?number=${encodeURIComponent(phone)}">написати у Viber</a></p>
         <p style="margin:4px 0"><b>Доставка:</b> ${esc(carrierName)}, ${esc(city)}, ${esc(branch)}</p>
-        <p style="margin:4px 0"><b>Оплата:</b> при отриманні (накладений платіж)</p>
+        <p style="margin:4px 0"><b>Оплата:</b> передоплата (надіслати реквізити у Viber)</p>
         ${comment ? `<p style="margin:4px 0"><b>Коментар:</b> ${esc(comment)}</p>` : ""}`;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
